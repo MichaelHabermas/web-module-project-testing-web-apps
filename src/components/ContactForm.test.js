@@ -11,27 +11,39 @@ test('renders without errors', () => {
 test('renders the contact form header', () => {
 	render(<ContactForm />);
 	const header = screen.queryByText(/contact form/i);
-	expect(header).toBeVisible();
+	expect(header).toBeInTheDocument();
+	expect(header).toBeTruthy();
+	expect(header).toHaveTextContent(/contact form/i);
 });
 
 test('renders ONE error message if user enters less then 5 characters into firstname.', async () => {
 	render(<ContactForm />);
-	const firstName = 'Bob';
+	const firstName = 'Bobb';
 
 	const firstNameInput = screen.getByLabelText(/first name/i);
 	userEvent.type(firstNameInput, firstName);
 
-	const errorMessages = screen.queryAllByText(/error/i);
+	const errorMessages = await screen.queryAllByTestId(/error/i);
 	expect(errorMessages).toHaveLength(1);
 });
 
 test('renders THREE error messages if user enters no values into any fields.', async () => {
 	render(<ContactForm />);
 
+	const firstNameInput = screen.getByLabelText(/first name*/i);
+	const lastNameInput = screen.getByLabelText(/last name*/i);
+	const emailInput = screen.getByLabelText(/email*/i);
+	const messageInput = screen.getByLabelText(/message/i);
+
+	expect(firstNameInput).toHaveValue('');
+	expect(lastNameInput).toHaveValue('');
+	expect(emailInput).toHaveValue('');
+	expect(messageInput).toHaveValue('');
+
 	const button = screen.getByRole('button');
 	userEvent.click(button);
 
-	const errorMessages = screen.queryAllByText(/error/i);
+	const errorMessages = await screen.queryAllByTestId(/error/i);
 	expect(errorMessages).toHaveLength(3);
 });
 
@@ -39,21 +51,22 @@ test('renders ONE error message if user enters a valid first name and last name 
 	render(<ContactForm />);
 	const firstName = 'Robert';
 	const lastName = 'Paulson';
-	// const email = 'qwerttyyu';
 
 	const firstNameInput = screen.getByLabelText(/first name/i);
-	userEvent.type(firstNameInput, firstName);
-
 	const lastNameInput = screen.getByLabelText(/last name/i);
+	const emailInput = screen.getByLabelText(/email*/i);
+
+	userEvent.type(firstNameInput, firstName);
 	userEvent.type(lastNameInput, lastName);
 
-	// const emailInput = screen.getByLabelText(/email/i);
-	// userEvent.type(emailInput, email);
+	expect(firstNameInput).toHaveValue(firstName);
+	expect(lastNameInput).toHaveValue(lastName);
+	expect(emailInput).toHaveValue('');
 
 	const button = screen.getByRole('button');
 	userEvent.click(button);
 
-	const errorMessages = screen.queryAllByText(/error/i);
+	const errorMessages = await screen.queryAllByTestId(/error/i);
 	expect(errorMessages).toHaveLength(1);
 });
 
@@ -61,23 +74,27 @@ test('renders "email must be a valid email address" if an invalid email is enter
 	render(<ContactForm />);
 	const email = 'qwerttyyu';
 
-	const emailInput = screen.getByLabelText(/email/i);
+	const emailInput = screen.getByLabelText(/email*/i);
 	userEvent.type(emailInput, email);
+	expect(emailInput).toHaveValue(email);
 
 	const button = screen.getByRole('button');
 	userEvent.click(button);
 
-	const errorMessage = screen.queryByText(/email must be a valid email address/i);
-	expect(errorMessage).toBeVisible();
+	const errorMessage = await screen.findByText(/email must be a valid email address/i);
+	expect(errorMessage).toBeInTheDocument();
 });
 
 test('renders "lastName is a required field" if an last name is not entered and the submit button is clicked', async () => {
 	render(<ContactForm />);
 
+	const lastNameInput = screen.getByLabelText(/last name*/i);
+	expect(lastNameInput).toHaveValue('');
+
 	const button = screen.getByRole('button');
 	userEvent.click(button);
 
-	const errorMessage = screen.queryByText(/lastName is a required field/i);
+	const errorMessage = await screen.queryByText(/lastName is a required field/i);
 	expect(errorMessage).toBeVisible();
 });
 
@@ -87,13 +104,19 @@ test('renders all firstName, lastName and email text when submitted. Does NOT re
 	const lastName = 'Paulson';
 	const email = 'bobbypaulson@aol.com';
 
-	const firstNameInput = screen.getByLabelText(/first name/i);
-	const lastNameInput = screen.getByLabelText(/last name/i);
-	const emailInput = screen.getByLabelText(/email/i);
+	const firstNameInput = screen.getByLabelText(/first name*/i);
+	const lastNameInput = screen.getByLabelText(/last name*/i);
+	const emailInput = screen.getByLabelText(/email*/i);
+	const messageInput = screen.getByLabelText(/message/i);
 
 	userEvent.type(firstNameInput, firstName);
 	userEvent.type(lastNameInput, lastName);
 	userEvent.type(emailInput, email);
+
+	expect(firstNameInput).toHaveValue(firstName);
+	expect(lastNameInput).toHaveValue(lastName);
+	expect(emailInput).toHaveValue(email);
+	expect(messageInput).toHaveValue('');
 
 	const messageDiv = screen.queryByText(/you submitted/i);
 	expect(messageDiv).toBeFalsy();
@@ -101,17 +124,25 @@ test('renders all firstName, lastName and email text when submitted. Does NOT re
 	const button = screen.getByRole('button');
 	userEvent.click(button);
 
-	const firstNameDisplay = screen.queryByTestId('firstnameDisplay');
-	const lastNameDisplay = screen.queryByTestId('lastnameDisplay');
-	const emailDisplay = screen.queryByTestId('emailDisplay');
+	const firstNameDisplay = await screen.queryByTestId('firstnameDisplay');
+	const lastNameDisplay = await screen.queryByTestId('lastnameDisplay');
+	const emailDisplay = await screen.queryByTestId('emailDisplay');
+	const messageDisplay = await screen.queryByText(/message:/i);
 
-	expect(firstNameDisplay).toBeVisible();
-	expect(lastNameDisplay).toBeVisible();
-	expect(emailDisplay).toBeVisible();
+	expect(firstNameDisplay).toBeTruthy();
+	expect(firstNameDisplay).toBeInTheDocument();
+	expect(firstNameDisplay).toHaveTextContent(/robert/i);
 
-	//test for message to not be there
-	const messageDisplay = screen.queryByText(/message:/i);
-	expect(messageDisplay).not.toBeVisible();
+	expect(lastNameDisplay).toBeTruthy();
+	expect(lastNameDisplay).toBeInTheDocument();
+	expect(lastNameDisplay).toHaveTextContent(/paulson/i);
+
+	expect(emailDisplay).toBeTruthy();
+	expect(emailDisplay).toBeInTheDocument();
+	expect(emailDisplay).toHaveTextContent(/bobbypaulson@aol.com/i);
+
+	expect(messageDisplay).toBeFalsy();
+	expect(messageDisplay).not.toBeInTheDocument();
 });
 
 test('renders all fields text when all fields are submitted.', async () => {
@@ -119,28 +150,44 @@ test('renders all fields text when all fields are submitted.', async () => {
 	const firstName = 'Robert';
 	const lastName = 'Paulson';
 	const email = 'bobbypaulson@aol.com';
+	const message = 'This is only a test.';
 
-	const firstNameInput = screen.getByLabelText(/first name/i);
-	const lastNameInput = screen.getByLabelText(/last name/i);
-	const emailInput = screen.getByLabelText(/email/i);
+	const firstNameInput = screen.getByLabelText(/first name*/i);
+	const lastNameInput = screen.getByLabelText(/last name*/i);
+	const emailInput = screen.getByLabelText(/email*/i);
+	const messageInput = screen.getByLabelText(/message/i);
 
 	userEvent.type(firstNameInput, firstName);
 	userEvent.type(lastNameInput, lastName);
 	userEvent.type(emailInput, email);
+	userEvent.type(messageInput, message);
+
+	expect(firstNameInput).toHaveValue(firstName);
+	expect(lastNameInput).toHaveValue(lastName);
+	expect(emailInput).toHaveValue(email);
+	expect(messageInput).toHaveValue(message);
 
 	const button = screen.getByRole('button');
 	userEvent.click(button);
 
-	const firstNameDisplay = await screen.findByTestId('firstnameDisplay');
-	// console.log(firstNameDisplay);
-	// const lastNameDisplay = screen.queryByTestId('lastnameDisplay');
-	// const emailDisplay = screen.queryByTestId('emailDisplay');
+	const firstNameDisplay = screen.queryByTestId('firstnameDisplay');
+	const lastNameDisplay = screen.queryByTestId('lastnameDisplay');
+	const emailDisplay = screen.queryByTestId('emailDisplay');
+	const messageDisplay = screen.queryByTestId('messageDisplay');
 
-	expect(firstNameDisplay).toBeVisible();
-	expect(screen.getByText(/robert/i)).toBeTruthy();
-	screen.getByText(/robert/i);
-	// const fnTxt = screen.getByText(/first name/i);
+	expect(firstNameDisplay).toBeTruthy();
+	expect(firstNameDisplay).toBeInTheDocument();
+	expect(firstNameDisplay).toHaveTextContent(/robert/i);
 
-	// expect(lastNameDisplay).toBeVisible();
-	// expect(emailDisplay).toBeVisible();
+	expect(lastNameDisplay).toBeTruthy();
+	expect(lastNameDisplay).toBeInTheDocument();
+	expect(lastNameDisplay).toHaveTextContent(/paulson/i);
+
+	expect(emailDisplay).toBeTruthy();
+	expect(emailDisplay).toBeInTheDocument();
+	expect(emailDisplay).toHaveTextContent(/bobbypaulson@aol.com/i);
+
+	expect(messageDisplay).toBeTruthy();
+	expect(messageDisplay).toBeInTheDocument();
+	expect(messageDisplay).toHaveTextContent(/This is only a test./i);
 });
