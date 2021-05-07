@@ -124,10 +124,10 @@ test('renders all firstName, lastName and email text when submitted. Does NOT re
 	const button = screen.getByRole('button');
 	userEvent.click(button);
 
-	const firstNameDisplay = await screen.queryByTestId('firstnameDisplay');
-	const lastNameDisplay = await screen.queryByTestId('lastnameDisplay');
-	const emailDisplay = await screen.queryByTestId('emailDisplay');
-	const messageDisplay = await screen.queryByText(/message:/i);
+	const firstNameDisplay = await screen.findByTestId('firstnameDisplay');
+	const lastNameDisplay = await screen.findByTestId('lastnameDisplay');
+	const emailDisplay = await screen.findByTestId('emailDisplay');
+	const messageDisplay = screen.queryByTestId('messageDisplay');
 
 	expect(firstNameDisplay).toBeTruthy();
 	expect(firstNameDisplay).toBeInTheDocument();
@@ -170,10 +170,10 @@ test('renders all fields text when all fields are submitted.', async () => {
 	const button = screen.getByRole('button');
 	userEvent.click(button);
 
-	const firstNameDisplay = screen.queryByTestId('firstnameDisplay');
-	const lastNameDisplay = screen.queryByTestId('lastnameDisplay');
-	const emailDisplay = screen.queryByTestId('emailDisplay');
-	const messageDisplay = screen.queryByTestId('messageDisplay');
+	const firstNameDisplay = await screen.findByTestId('firstnameDisplay');
+	const lastNameDisplay = await screen.findByTestId('lastnameDisplay');
+	const emailDisplay = await screen.findByTestId('emailDisplay');
+	const messageDisplay = await screen.findByTestId('messageDisplay');
 
 	expect(firstNameDisplay).toBeTruthy();
 	expect(firstNameDisplay).toBeInTheDocument();
